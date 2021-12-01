@@ -8,3 +8,5 @@ xwiibb.o:
 
 clean:
 	rm -rf *.o xwiibb
+
+rebuild: clean all

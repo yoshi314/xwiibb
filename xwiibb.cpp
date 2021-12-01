@@ -16,6 +16,8 @@
 #include <unistd.h>
 #include "xwiimote.h"
 
+
+// how many samples to collect for calculation, once you actually step on the board
 #define MAX_SAMPLES 100
 
 static struct xwii_iface *iface;
@@ -101,15 +103,18 @@ static bool bboard_show_ext(const struct xwii_event *event, uint16_t *offset)
         printf("Adjusting weight offset : %5d\r",*offset);
     }
 
+
+    // assuming you are over 60kg, this is when the measurements are considered valid
 	if (w+x+y+z > 6000) {
 //	  led_off();
           counter++;
-	  totalval += w+x+y+z - *offset;
+	  totalval += (w+x+y+z - *offset);  //adjusted for calibration, not sure if correct readings, though.
 	  countertoolow = 0;
-      printf("collecting measurement %i /%i\r",counter,MAX_SAMPLES);
+      printf("collecting measurement %i /%i\n",counter,MAX_SAMPLES);
 	  if (counter > MAX_SAMPLES) {
             //led_on();
 	    totalval = totalval / counter;
+        printf("-----------------------------------------\n");
 	    printf("Total value: %i, adjustment : %i\n",totalval, *offset);
 	    //submit(totalval);
 	    totalval = 0;
