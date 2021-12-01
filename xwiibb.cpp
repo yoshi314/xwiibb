@@ -16,6 +16,8 @@
 #include <unistd.h>
 #include "xwiimote.h"
 
+#define MAX_SAMPLES 100
+
 static struct xwii_iface *iface;
 
 static int counter = 0;
@@ -56,7 +58,7 @@ static void led_on(void)
 
 	ret = xwii_iface_set_led(iface, XWII_LED(1), 1);
 	if (ret) {
-		print_error("Error: Cannot toggle LED 1: %d", ret);
+		print_error("Error: Cannot toggle LED 1: %d\n", ret);
 	}
 }
 
@@ -82,32 +84,40 @@ void submit(int val) {
 
 /* balance board */
 
-static bool bboard_show_ext(const struct xwii_event *event)
+static bool bboard_show_ext(const struct xwii_event *event, uint16_t *offset)
 {
 	uint16_t w, x, y, z;
+
 
 	w = event->v.abs[0].x;
 	x = event->v.abs[1].x;
 	y = event->v.abs[2].x;
 	z = event->v.abs[3].x;
 
-	printf( "W: %5d, X: %5d, Y: %5d, Z: %5d, T: %5d, CNT: %i\n", w,x,y,z,w+x+y+z,counter);
-	if (w+x+y+z > 4000) {
-	  led_off();
+//	printf( "W: %5d, X: %5d, Y: %5d, Z: %5d, T: %5d, CNT: %i (adjusted by %5d)\r ", w,x,y,z,w+x+y+z - *offset,counter, *offset);
+
+    if (w+x+y+z<500) {
+        *offset = w+x+z+y;
+        printf("Adjusting weight offset : %5d\r",*offset);
+    }
+
+	if (w+x+y+z > 6000) {
+//	  led_off();
           counter++;
-	  totalval += w+x+y+z;
+	  totalval += w+x+y+z - *offset;
 	  countertoolow = 0;
-	  if (counter > 100) {
-            led_on();
+      printf("collecting measurement %i /%i\r",counter,MAX_SAMPLES);
+	  if (counter > MAX_SAMPLES) {
+            //led_on();
 	    totalval = totalval / counter;
-	    printf("Total value: %i\n",totalval);
+	    printf("Total value: %i, adjustment : %i\n",totalval, *offset);
 	    //submit(totalval);
 	    totalval = 0;
             counter = 0;
 	    return false;
 	  }
 	} else {
-	  led_on();
+	  //led_on();
 	  countertoolow++;
           if (countertoolow > 1000) {
 	    printf("No person (40KG) found. Shutting down.\n");
@@ -276,6 +286,8 @@ static int run_iface(struct xwii_iface *iface)
 	int ret = 0;
 	struct pollfd fds[2];
 
+    uint16_t offset = 0;
+
 	memset(fds, 0, sizeof(fds));
 	fds[0].fd = 0;
 	fds[0].events = POLLIN;
@@ -311,7 +323,7 @@ static int run_iface(struct xwii_iface *iface)
 				handle_watch();
 				break;
 			case XWII_EVENT_BALANCE_BOARD:
-				  isrunning = bboard_show_ext(&event);
+				  isrunning = bboard_show_ext(&event,&offset);
 				  //led1_toggle();
 				break;
 			}
@@ -442,6 +454,7 @@ static int enumerate()
 			dobreak = true;
 		}
 		printf("> MAC: %s",mac);
+//this appears obsolete
 		bool disconnect = dcheck(num);
 		if (disconnect) {
 			char str[80];
