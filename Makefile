@@ -1,4 +1,4 @@
-all: xwiibb
+all: clean xwiibb
 
 xwiibb: xwiibb.o
 	g++ xwiibb.o -o xwiibb -lxwiimote -lX11 -lXtst
@@ -8,5 +8,3 @@ xwiibb.o:
 
 clean:
 	rm -rf *.o xwiibb
-
-rebuild: clean all

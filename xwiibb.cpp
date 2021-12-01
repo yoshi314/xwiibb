@@ -98,16 +98,16 @@ static bool bboard_show_ext(const struct xwii_event *event, uint16_t *offset)
 
 //	printf( "W: %5d, X: %5d, Y: %5d, Z: %5d, T: %5d, CNT: %i (adjusted by %5d)\r ", w,x,y,z,w+x+y+z - *offset,counter, *offset);
 
-    if (w+x+y+z<500) {
-        *offset = w+x+z+y;
-        printf("Adjusting weight offset : %5d\r",*offset);
-    }
+//    if (w+x+y+z<3000) {
+//        *offset = w+x+z+y;
+//        printf("Adjusting weight offset : %5d\r",*offset);
+//    }
 
 
     // assuming you are over 60kg, this is when the measurements are considered valid
 	if (w+x+y+z > 6000) {
 //	  led_off();
-          counter++;
+      counter++;
 	  totalval += (w+x+y+z - *offset);  //adjusted for calibration, not sure if correct readings, though.
 	  countertoolow = 0;
       printf("collecting measurement %i /%i\n",counter,MAX_SAMPLES);
