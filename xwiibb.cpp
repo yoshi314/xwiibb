@@ -15,6 +15,10 @@
 #include <string.h>
 #include <unistd.h>
 #include "xwiimote.h"
+#include <time.h>
+#include <string>
+#include <iostream>
+
 
 
 // how many samples to collect for calculation, once you actually step on the board
@@ -25,6 +29,17 @@ static struct xwii_iface *iface;
 static int counter = 0;
 static int countertoolow = 0;
 static int totalval = 0;
+
+
+const std::string currentDateTime() {
+    time_t     now = time(0);
+    struct tm  tstruct;
+    char       buf[80];
+    tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "%Y-%m-%d %X", &tstruct);
+
+    return buf;
+}
 
 /* error messages */
 
@@ -111,11 +126,13 @@ static bool bboard_show_ext(const struct xwii_event *event, uint16_t *offset)
 	  totalval += (w+x+y+z - *offset);  //adjusted for calibration, not sure if correct readings, though.
 	  countertoolow = 0;
       printf("collecting measurement %i /%i\n",counter,MAX_SAMPLES);
+
 	  if (counter > MAX_SAMPLES) {
             //led_on();
 	    totalval = totalval / counter;
         printf("-----------------------------------------\n");
 	    printf("Total value: %i, adjustment : %i\n",totalval, *offset);
+        std::cout << currentDateTime() << "," << totalval << std::endl;
 	    //submit(totalval);
 	    totalval = 0;
             counter = 0;
