@@ -125,7 +125,7 @@ static bool bboard_show_ext(const struct xwii_event *event, uint16_t *offset)
       counter++;
 	  totalval += (w+x+y+z - *offset);  //adjusted for calibration, not sure if correct readings, though.
 	  countertoolow = 0;
-      printf("collecting measurement %i /%i\n",counter,MAX_SAMPLES);
+      printf("collecting measurement %i /%i\r",counter,MAX_SAMPLES);
 
 	  if (counter > MAX_SAMPLES) {
             //led_on();
@@ -482,8 +482,8 @@ static int enumerate()
 			char str[80];
 			strcpy(str,"bt-input -d ");
 			strcat(str,mac);
-			printf("Cmd: %s\n",str);
-			system(str);
+//			printf("Cmd: %s\n",str);
+//			system(str);
 		}
 		if (dobreak) { break; }
 	}
